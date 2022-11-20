@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            body {
+                text-align: left;
+                margin-left: 15px;
+                margin-right: auto;
+                background-color: #808080;
+                color: white;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-x: hidden;
+            }
+
+            canvas {
+                border-style: solid;
+                border-radius: 1px;
+                border-color: #AAAAAA;
+            }
+
+            p {
+                display: inline;
+            }
+
+            h2, h4 {
+                margin-bottom: 5px;
+            }
+        </style>
+        <meta name="title" content="Balls Online | Weirdest multiplayer game">
+        <meta name="description" content="Just hang out, and be a ball! What else could you wish for?">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="./">
+        <meta property="og:title" content="Balls Online | Weirdest multiplayer game">
+        <meta property="og:description" content="Just hang out, and be a ball! What else could you wish for?">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/x-icon" href="./favicon.png">
+    </head>
+    <body>
+        <h1>Balls Online Help</h1>
+        <p>You've arrived at the Help page.</p> <a href="./">Go back to the game!</a>
+
+        <h2>Gameplay</h2>
+        <p>Use the arrow keys to move. WASD is coming soon. There are buttons for phone devices, although they are not polished.</p><br>
+        <p>Chat by entering something in the chat box, then press enter or press the confirm button.</p><br>
+        <p>The checkboxes toggle a semi-transparent background, for better readability. Here's what each checkbox does:</p><br>
+        <img src="checkboxes.png">
+
+        <h2>Information</h2>
+        <h4>The top left corner shows useful information about the client and the server. The statistics change colors depending on the value.</h4>
+        <p>FPS - frames per second, might be a bit broken for now</p><br>
+        <p>Ping - the ping distance / speed between the client and the server, updates every second</p><br>
+        <p>Status - online or offline, only shows offline if the client is connecting or is not connected</p><br>
+        <br>
+        <p>Client run - shows how long the client has been running for</p><br>
+        <p>Server run - shows how long the server has been running for</p><br>
+        <p>Version - shows the version of the client</p><br>
+        <p>Platform - shows the platform the client is on</p><br>
+
+        <h4>The "Info" tab shows the ID (name) of the local player, X, Y, and the player count.</h4>
+
+        <h4>The "Chat" tab shows the last five messages. The newest one will always start with a yellow color, then fades to white.</h4>
+
+        <h4>The Player list shows all the players.</h4>
+
+        <h4>The center of the game screen shows the notification message. It will then fade out after time passes.</h4>
+
+        <h4>Local players will always have their balls colored blue. The other balls are red. Above the balls are their IDs / names.</h4>
+        <br>
+        <h2>For developers</h2>
+        <p>You can create a custom server. It is recommended to <a href="./docs">read the documentation</a>.</p><br>
+        <p>It is however not recommended to create a custom client for mainly two reasons:</p><br>
+        <li>The client code is minified and it can change</li>
+        <li>Most of the servers are only compatible with the official client</li>
+        <br>
+        <p>Thank you for your interest in creating content for the game.</p>
+    </body>
+</html>
