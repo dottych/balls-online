@@ -28,7 +28,7 @@ const { performance } = require('perf_hooks');
 console.log("running on port " + _port);
 
 
-const version = "0.3.9";
+const version = "0.4.0";
 
 let clients = [];
 let regex = /([^a-z0-9 _\-\+?!.:,$€Łß\/\\\(\)\{\}\[\]\<\>|á-ź*'"])+/gi; // work on this regex
@@ -213,6 +213,8 @@ const colors = {
     white: "#FFFFFF",
     black: "#000000",
     gray: "#AAAAAA",
+    brown: "#AA6969",
+    maroon: "#AA0000",
 }
 
 http.on('request', app);
@@ -444,6 +446,18 @@ server.on('connection', c => {
                                     broadcast(JSON.stringify(["redirect", vars[1]]));
                                 } else c.send(JSON.stringify(["message", "/", `You are not an admin.`]));
                                 break;
+
+                            case "audio":
+                                if (players[i].admin) {
+                                    broadcast(JSON.stringify(["audio", vars[1]]));
+                                } else c.send(JSON.stringify(["message", "/", `You are not an admin.`]));
+                                break;
+
+                            /*case "eval":
+                                if (players[i].admin) {
+                                    c.send(JSON.stringify(["message", ">", eval(vars.join(" "))]));
+                                } else c.send(JSON.stringify(["message", "/", `You are not an admin.`]));
+                                break;*/
 
                             default:
                                 c.send(JSON.stringify(["message", "/", `This command does not exist.`]));
