@@ -84,14 +84,13 @@ const npcMsgs = fs.readFileSync('./npcmsgs.txt').toString().split('\n');
 
 const maps = [
     [
-        // auto generated
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
+        [0, 0, 3, 0, 0, 0, 3, 0, 0, 3, 0, 0, 0, 3, 0, 0,],
+        [0, 0, 2, 0, 0, 3, 3, 2, 2, 3, 3, 0, 0, 2, 0, 0,],
+        [0, 0, 2, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 2, 0, 0,],
+        [0, 0, 2, 0, 0, 3, 3, 2, 2, 3, 3, 0, 0, 2, 0, 0,],
+        [0, 0, 3, 0, 0, 0, 3, 0, 0, 3, 0, 0, 0, 3, 0, 0,],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
     ],
@@ -141,7 +140,7 @@ const maps = [
     ],
 ]
 
-function generate() {
+/*function generate() {
     for (let y = 0; y < 9; y++) {
         for (let x = 0; x < 16; x++) {
             maps[0][y][x] = Math.floor(Math.random() * 4);
@@ -151,10 +150,25 @@ function generate() {
     maps[0][4][8] = 0;
 }
 
-generate();
+generate();*/
 
+let map = maps[Math.floor(Math.random() * maps.length)];
 
-let map = maps[Math.floor(Math.random() * maps.length-1)+1];
+function newmap() {
+    let oldMap = map;
+    let choice = Math.floor(Math.random() * maps.length)
+    map = maps[choice];
+    while (oldMap == map) map = maps[Math.floor(Math.random() * maps.length)];
+    broadcast(JSON.stringify(["message", "Server", `Changing map.`]));
+    broadcast(JSON.stringify(["notification", "Changing map."]));
+    broadcast(JSON.stringify(["map", map]));
+    for (let i = 0; i < Object.keys(players).length; i++) {
+        Object.keys(players)[i].x = _x;
+        Object.keys(players)[i].y = _y;
+        console.log(Object.keys(players)[i]);
+        broadcast(JSON.stringify(["move", Object.keys(players)[i], _x, _y]));
+    }
+}
 
 let players = {};
 let totalCount = 0;
@@ -330,23 +344,7 @@ server.on('connection', c => {
 
                             case "newmap":
                                 if (players[id].mod) {
-                                    let oldMap = map;
-                                    let choice = Math.floor(Math.random() * maps.length-1)+1
-                                    map = maps[choice];
-                                    if (choice == 0) {
-                                        generate();
-                                    } else {
-                                        while (oldMap == map) map = maps[Math.floor(Math.random() * maps.length-1)+1];
-                                    }
-                                    broadcast(JSON.stringify(["message", "Server", `Changing map.`]));
-                                    broadcast(JSON.stringify(["notification", "Changing map."]));
-                                    broadcast(JSON.stringify(["map", map]));
-                                    for (let i = 0; i < Object.keys(players).length; i++) {
-                                        Object.keys(players)[i].x = _x;
-                                        Object.keys(players)[i].y = _y;
-                                        console.log(Object.keys(players)[i]);
-                                        broadcast(JSON.stringify(["move", Object.keys(players)[i], _x, _y]));
-                                    }
+                                    newmap();
                                 } else c.send(JSON.stringify(["message", "/", `You are not a moderator.`]));
                                 break;
 
@@ -460,6 +458,10 @@ setInterval(() => {
     broadcast(JSON.stringify(["move", "NPC", players["NPC"].x, players["NPC"].y]));
     if (Math.floor(Math.random() * 2022) == 42) broadcast(JSON.stringify(["message", "NPC", npcMsgs[Math.floor(Math.random() * npcMsgs.length)]]));
 }, 65);
+
+setInterval(() => {
+    newmap();
+}, 60000 * 5);
 
 http.listen(_port, () => {
     console.log("listening");
