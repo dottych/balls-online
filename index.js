@@ -24,11 +24,10 @@ const WSServer = ws.Server;
 const http = require('http').createServer();
 const server = new WSServer({ server: http });
 const app = require('./app');
-const { performance } = require('perf_hooks');
 console.log("running on port " + _port);
 
 
-const version = "0.3.3";
+const version = "0.3.6";
 
 let clients = [];
 let regex = /([^a-z0-9 _\-\+?!.:,$€Łß\/\\\(\)\{\}\[\]\<\>á-ź*'"])+/gi; // work on this regex
@@ -84,6 +83,18 @@ const npcMsgs = fs.readFileSync('./npcmsgs.txt').toString().split('\n');
 
 const maps = [
     [
+        // auto generated
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
+    ],
+    [
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0, 0, 3, 0,],
         [0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 0,],
@@ -117,18 +128,6 @@ const maps = [
         [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0,],
     ],
     [
-        // auto generated
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
-        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
-    ],
-    [
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
         [0, 3, 0, 3, 0, 3, 0, 3, 0, 3, 0, 0, 3, 0, 3, 0,],
         [0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0,],
@@ -144,17 +143,17 @@ const maps = [
 function generate() {
     for (let y = 0; y < 9; y++) {
         for (let x = 0; x < 16; x++) {
-            maps[3][y][x] = Math.floor(Math.random() * 4);
+            maps[0][y][x] = Math.floor(Math.random() * 4);
         }
     }
-    maps[3][4][7] = 0;
-    maps[3][4][8] = 0;
+    maps[0][4][7] = 0;
+    maps[0][4][8] = 0;
 }
 
 generate();
 
 
-let map = maps[Math.floor(Math.random() * maps.length)];
+let map = maps[Math.floor(Math.random() * maps.length-1)+1];
 
 let players = {};
 let totalCount = 0;
@@ -331,12 +330,12 @@ server.on('connection', c => {
                             case "newmap":
                                 if (players[id].mod) {
                                     let oldMap = map;
-                                    let choice = Math.floor(Math.random() * maps.length)
+                                    let choice = Math.floor(Math.random() * maps.length-1)+1
                                     map = maps[choice];
-                                    if (choice == 3) {
+                                    if (choice == 0) {
                                         generate();
                                     } else {
-                                        while (oldMap == map) map = maps[Math.floor(Math.random() * maps.length)];
+                                        while (oldMap == map) map = maps[Math.floor(Math.random() * maps.length-1)+1];
                                     }
                                     broadcast(JSON.stringify(["message", "Server", `Changing map.`]));
                                     broadcast(JSON.stringify(["notification", "Changing map."]));
@@ -376,13 +375,13 @@ server.on('connection', c => {
                                 break;
 
                             case "tp":
-                                if (players[id].admin) {
+                                if (players[i].admin) {
                                     
                                 } else c.send(JSON.stringify(["message", "/", `You are not an admin.`]));
                                 break;
 
                             case "redirect":
-                                if (players[id].admin) {
+                                if (players[i].admin) {
                                     broadcast(JSON.stringify(["redirect", vars[1]]));
                                 } else c.send(JSON.stringify(["message", "/", `You are not an admin.`]));
                                 break;
@@ -459,7 +458,7 @@ setInterval(() => {
     if (players["NPC"].y + newY > 0 && players["NPC"].y + newY < 720 - 16 && !touchedY) players["NPC"].y += newY; else angle = +(angle - 180);
     broadcast(JSON.stringify(["move", "NPC", players["NPC"].x, players["NPC"].y]));
     if (Math.floor(Math.random() * 2022) == 42) broadcast(JSON.stringify(["message", "NPC", npcMsgs[Math.floor(Math.random() * npcMsgs.length)]]));
-}, 50);
+}, 65);
 
 http.listen(_port, () => {
     console.log("listening");

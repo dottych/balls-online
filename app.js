@@ -10,9 +10,9 @@ app.get("/help", (req, res) => {
     res.sendFile(__dirname + "/help.html");
 });
 
-app.get("/docs", (req, res) => {
+/*app.get("/docs", (req, res) => {
     res.sendFile(__dirname + "/docs.html");
-});
+});*/
 
 app.use(express.static(path.join(__dirname, "include")));
 
