@@ -436,19 +436,19 @@ server.on('connection', c => {
                                 break;
 
                             case "tp":
-                                if (players[i].admin) {
+                                if (players[id].admin) {
                                     
                                 } else c.send(JSON.stringify(["message", "/", `You are not an admin.`]));
                                 break;
 
                             case "redirect":
-                                if (players[i].admin) {
+                                if (players[id].admin) {
                                     broadcast(JSON.stringify(["redirect", vars[1]]));
                                 } else c.send(JSON.stringify(["message", "/", `You are not an admin.`]));
                                 break;
 
                             case "audio":
-                                if (players[i].admin) {
+                                if (players[id].admin) {
                                     broadcast(JSON.stringify(["audio", vars[1]]));
                                 } else c.send(JSON.stringify(["message", "/", `You are not an admin.`]));
                                 break;
