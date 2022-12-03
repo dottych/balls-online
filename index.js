@@ -344,7 +344,7 @@ server.on('connection', c => {
                                             delete players[id];
                                             let oldId = id;
                                             id = newName;
-                                            players[id] = {x: tempPlayer.x, y: tempPlayer.y, prevX: tempPlayer.prevX, prevY: tempPlayer.prevY, moved: tempPlayer.moved, mod: tempPlayer.mod, admin: tempPlayer.admin};
+                                            players[id] = {x: tempPlayer.x, y: tempPlayer.y, prevX: tempPlayer.prevX, prevY: tempPlayer.prevY, color: tempPlayer.color, moved: tempPlayer.moved, mod: tempPlayer.mod, admin: tempPlayer.admin};
                                             broadcast(JSON.stringify(["rename", oldId, id]));
                                             broadcastExceptClient(c, JSON.stringify(["message", "Server", `${oldId} changed their name to ${id}.`]))
                                             c.send(JSON.stringify(["message", "/", `Changed your name to ${id}.`]));
