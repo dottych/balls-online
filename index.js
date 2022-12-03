@@ -163,8 +163,8 @@ function newmap() {
     broadcast(JSON.stringify(["notification", "Changing map."]));
     broadcast(JSON.stringify(["map", map]));
     for (let i = 0; i < Object.keys(players).length; i++) {
-        Object.keys(players)[i].x = _x;
-        Object.keys(players)[i].y = _y;
+        Object.keys(players)[i].x = 1280/2;
+        Object.keys(players)[i].y = 720/2;
         console.log(Object.keys(players)[i]);
         broadcast(JSON.stringify(["move", Object.keys(players)[i], _x, _y]));
     }
