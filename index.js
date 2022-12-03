@@ -28,10 +28,10 @@ const { performance } = require('perf_hooks');
 console.log("running on port " + _port);
 
 
-const version = "0.3.6";
+const version = "0.3.9";
 
 let clients = [];
-let regex = /([^a-z0-9 _\-\+?!.:,$€Łß\/\\\(\)\{\}\[\]\<\>á-ź*'"])+/gi; // work on this regex
+let regex = /([^a-z0-9 _\-\+?!.:,$€Łß\/\\\(\)\{\}\[\]\<\>|á-ź*'"])+/gi; // work on this regex
 
 
 const nenc3 = _4489f185f2f260 => {
@@ -138,6 +138,28 @@ const maps = [
         [0, 3, 0, 0, 3, 0, 0, 3, 3, 3, 3, 3, 0, 0, 3, 0,],
         [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
     ],
+    [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0,],
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0,],
+        [0, 0, 0, 3, 2, 2, 3, 3, 3, 3, 3, 0, 3, 3, 1, 3,],
+        [0, 0, 0, 3, 0, 0, 3, 0, 0, 0, 2, 0, 3, 0, 0, 0,],
+        [0, 0, 0, 3, 0, 0, 3, 0, 0, 0, 2, 0, 1, 0, 0, 0,],
+        [0, 0, 0, 3, 0, 0, 3, 0, 0, 0, 2, 0, 3, 0, 0, 0,],
+        [3, 1, 3, 3, 1, 1, 3, 3, 1, 3, 3, 0, 3, 3, 1, 3,],
+        [0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0,],
+        [0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0,],
+    ],
+    [
+        [0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0,],
+        [0, 3, 3, 3, 0, 0, 0, 0, 0, 2, 0, 3, 2, 3, 0, 0,],
+        [0, 2, 0, 1, 0, 3, 3, 0, 3, 3, 2, 3, 0, 3, 3, 1,],
+        [0, 3, 3, 3, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
+        [0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,],
+        [0, 3, 1, 3, 0, 0, 0, 0, 0, 0, 3, 3, 3, 0, 3, 0,],
+        [0, 3, 0, 3, 0, 0, 3, 0, 0, 0, 0, 2, 0, 0, 2, 0,],
+        [0, 3, 2, 3, 0, 0, 3, 2, 3, 0, 0, 3, 0, 0, 3, 0,],
+        [0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0,],
+    ],
 ]
 
 /*function generate() {
@@ -163,10 +185,10 @@ function newmap() {
     broadcast(JSON.stringify(["notification", "Changing map."]));
     broadcast(JSON.stringify(["map", map]));
     for (let i = 0; i < Object.keys(players).length; i++) {
-        Object.keys(players)[i].x = 1280/2;
-        Object.keys(players)[i].y = 720/2;
+        Object.keys(players)[i].x = 1280/2-8;
+        Object.keys(players)[i].y = 720/2-8;
         console.log(Object.keys(players)[i]);
-        broadcast(JSON.stringify(["move", Object.keys(players)[i], 1280/2, 720/2]));
+        broadcast(JSON.stringify(["move", Object.keys(players)[i], 1280/2-8, 720/2-8]));
     }
 }
 
@@ -177,17 +199,35 @@ let adminPassword = "70f3e3f3f7fcc05733e76f70fc7c3755235939606d";
 let modPassword = "a0c3b43b4b9239b92c99ae2e4c10";
 let maxUsername = 20;
 
+// red, green, blue, cyan, lime, yellow, orange, purple, pink, white, black, gray
+const colors = {
+    red: "#FF6969",
+    green: "#69EE69",
+    blue: "#3369FF",
+    cyan: "#69FFFF",
+    lime: "#69FF69",
+    yellow: "#FFFF69",
+    orange: "#FFAA69",
+    purple: "#6969FF",
+    pink: "#FF69FF",
+    white: "#FFFFFF",
+    black: "#000000",
+    gray: "#AAAAAA",
+}
+
 http.on('request', app);
 
 server.on('connection', c => {
     clients.push(c);
     totalCount++;
-    let id = nenc3(totalCount + c._socket.remoteAddress.slice(0, 2) + Math.floor(Math.abs(Date.now() / 47 - performance.now() * 84)) % 42042 + clients.length).slice(0, 6);
+    log("IP HASH " + nenc3(c._socket.remoteAddress.substr(2)).slice(0, 6));
+    let id = nenc3(totalCount + c._socket.remoteAddress.substr(2) + Math.floor(Math.abs(Date.now() / 47 - performance.now() * 84)) % 42042 + clients.length).slice(0, 6);
     //let _x = Math.floor(Math.random() * 1264);
     //let _y = Math.floor(Math.random() * 704);
     let [_x, _y] = [Math.floor((1280 - 16) / 2), Math.floor((720 - 16) / 2)];
     let motd = motds[Math.floor(Math.random() * motds.length)];
-    players[id] = {x: _x, y: _y, prevX: _x, prevY: _y, moved: performance.now(), mod: false, admin: false};
+    let randomColor = Object.keys(colors)[Math.floor(Math.random() * Object.keys(colors).length)];
+    players[id] = {x: _x, y: _y, prevX: _x, prevY: _y, color: randomColor, moved: performance.now(), mod: false, admin: false};
     log(`${id} connected`);
     c.send(JSON.stringify(["id", id]));
     c.send(JSON.stringify(["time", Math.floor(performance.now())]));
@@ -204,7 +244,7 @@ server.on('connection', c => {
     for (let i = 0; i < Object.keys(players).length; i++) {
         let player = players[Object.keys(players)[i]];
         if (Object.keys(players)[i] != id) {
-            c.send(JSON.stringify(["spawn", Object.keys(players)[i], player.x, player.y]));
+            c.send(JSON.stringify(["spawn", Object.keys(players)[i], player.x, player.y, colors[player.color]]));
             //c.send(JSON.stringify(["message", "Server", `${id} joined`]));
         }
     }
@@ -212,7 +252,7 @@ server.on('connection', c => {
     broadcastExceptClient(c, JSON.stringify(["message", "Server", `${id} joined`]));
 
     // Spawn client for everyone
-    broadcast(JSON.stringify(["spawn", id, players[id].x, players[id].y]));
+    broadcast(JSON.stringify(["spawn", id, players[id].x, players[id].y, colors[players[id].color]]));
 
     c.on('message', msg => {
         //log(`${id} - ${msg}`);
@@ -238,6 +278,7 @@ server.on('connection', c => {
                 break;
 
             case "message":
+                log(`${id}: ${data[1]}`);
                 if (data[1][0] === "/") {
                     let vars = data[1].slice(1, data[1].length).split(" ");
                     if (vars.length < 1) c.send(JSON.stringify(["message", "/", `Specify a command.`])); else {
@@ -253,6 +294,10 @@ server.on('connection', c => {
 
                                         case "name":
                                             c.send(JSON.stringify(["message", "/", `Changes player's name to the specified name if available. Max 20 chars.`]));
+                                            break;
+
+                                        case "color":
+                                            c.send(JSON.stringify(["message", "/", `Colors player. Colors: red, green, blue, cyan, lime, yellow, orange, purple, pink, white, black, gray`]));
                                             break;
 
                                         case "respawn":
@@ -287,7 +332,7 @@ server.on('connection', c => {
                                             c.send(JSON.stringify(["message", "/", `This command does not exist or no usage is written for it.`]));
                                             break;
                                     }
-                                } else c.send(JSON.stringify(["message", "/", `Commands: cmds, name, respawn, motd, restart, newmap, notify, admin, mod`]));
+                                } else c.send(JSON.stringify(["message", "/", `Commands: cmds, name, color, respawn, motd, restart, newmap, notify, admin, mod`]));
                                 break;
 
                             case "name":
@@ -308,13 +353,28 @@ server.on('connection', c => {
                                     } else c.send(JSON.stringify(["message", "/", `That name is already used.`]));
                                 }
                                 break;
+
+                            case "color":
+                                if (vars.length < 2) c.send(JSON.stringify(["message", "/", `Specify the color.`])); else {
+                                    if (players[id].color !== vars[1]) {
+                                        if (colors.hasOwnProperty(vars[1])) {
+                                            players[id].color = vars[1];
+                                            broadcast(JSON.stringify(["color", id, colors[vars[1]]]));
+
+                                            //broadcastExceptClient(c, JSON.stringify(["message", "Server", `${id} changed their color to ${vars[1]}.`]));
+                                            c.send(JSON.stringify(["message", "/", `Changed your color to ${vars[1]}.`]));
+
+                                        } else c.send(JSON.stringify(["message", "/", `This color does not exist.`]));
+                                    } else c.send(JSON.stringify(["message", "/", `You already have this color.`]));
+                                }
+                                break;
                             
                             case "respawn":
                                 if (respawnEnabled) {
                                     players[id].x = _x;
                                     players[id].y = _y;
                                     broadcast(JSON.stringify(["move", id, players[id].x, players[id].y]));
-                                    c.send(JSON.stringify(["message", "/", `Tried to teleport you to spawn.`]));
+                                    c.send(JSON.stringify(["message", "/", `Teleported you to spawn.`]));
                                 } else c.send(JSON.stringify(["message", "/", `This command is disabled for now.`]));
                                 break;
 
@@ -397,7 +457,7 @@ server.on('connection', c => {
                 break;
 
             case "draw":
-                if (players[id].x !== players[id].prevX || players[id].y !== players[id].prevY) broadcast(JSON.stringify(["draw", players[id].x, players[id].y]));
+                if (players[id].x !== players[id].prevX || players[id].y !== players[id].prevY) broadcast(JSON.stringify(["draw", players[id].x, players[id].y, colors[players[id].color]]));
                 break;
         }
         //c.send("shut the fung");
@@ -417,13 +477,13 @@ server.on('connection', c => {
     };
 });
 
-players["NPC"] = {x: Math.floor((1280 - 16) / 2), y: Math.floor((720 - 16) / 2)};
+players["NPC"] = {x: Math.floor((1280 - 16) / 2), y: Math.floor((720 - 16) / 2), color: "yellow"};
 let angle = 0;
 setInterval(() => {
     let dir = Math.floor(Math.random() * 2);
     angle += (dir == 0) ? 0.1 : -0.1 % 360;
-    let newX = Math.floor(10 * Math.sin(angle));
-    let newY = Math.floor(10 * Math.cos(angle));
+    let newX = Math.floor(7 * Math.sin(angle));
+    let newY = Math.floor(7 * Math.cos(angle));
     let touchedX = false;
     let touchedY = false;
     if (players["NPC"].x !== players["NPC"].prevX) {
@@ -457,7 +517,7 @@ setInterval(() => {
     if (players["NPC"].y + newY > 0 && players["NPC"].y + newY < 720 - 16 && !touchedY) players["NPC"].y += newY; else angle = +(angle - 180);
     broadcast(JSON.stringify(["move", "NPC", players["NPC"].x, players["NPC"].y]));
     if (Math.floor(Math.random() * 2022) == 42) broadcast(JSON.stringify(["message", "NPC", npcMsgs[Math.floor(Math.random() * npcMsgs.length)]]));
-}, 65);
+}, 50);
 
 setInterval(() => {
     newmap();
