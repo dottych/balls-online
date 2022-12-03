@@ -166,7 +166,7 @@ function newmap() {
         Object.keys(players)[i].x = 1280/2;
         Object.keys(players)[i].y = 720/2;
         console.log(Object.keys(players)[i]);
-        broadcast(JSON.stringify(["move", Object.keys(players)[i], _x, _y]));
+        broadcast(JSON.stringify(["move", Object.keys(players)[i], 1280/2, 720/2]));
     }
 }
 
