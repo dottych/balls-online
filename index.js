@@ -28,7 +28,7 @@ const { performance } = require('perf_hooks');
 console.log("running on port " + _port);
 
 
-const version = "0.4.0";
+const version = "0.4.1";
 
 let clients = [];
 let regex = /([^a-z0-9 _\-\+?!.:,$€Łß\/\\\(\)\{\}\[\]\<\>|á-ź*'"])+/gi; // work on this regex
@@ -160,6 +160,17 @@ const maps = [
         [0, 3, 2, 3, 0, 0, 3, 2, 3, 0, 0, 3, 0, 0, 3, 0,],
         [0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0,],
     ],
+    [
+        [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0,],
+        [0, 0, 0, 0, 0, 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0,],
+        [0, 0, 3, 3, 0, 1, 0, 0, 0, 0, 1, 0, 3, 3, 0, 0,],
+        [0, 0, 0, 3, 0, 3, 0, 0, 0, 0, 3, 0, 3, 0, 0, 0,],
+        [0, 3, 0, 0, 0, 3, 0, 0, 0, 0, 3, 0, 0, 0, 3, 0,],
+        [2, 3, 3, 0, 0, 3, 0, 0, 0, 0, 3, 0, 0, 3, 3, 2,],
+        [0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0,],
+        [1, 3, 2, 3, 1, 3, 0, 0, 0, 0, 3, 1, 3, 2, 3, 1,],
+        [0, 0, 0, 0, 0, 3, 0, 2, 2, 0, 3, 0, 0, 0, 0, 0,],
+    ],
 ]
 
 /*function generate() {
@@ -187,9 +198,10 @@ function newmap() {
     for (let i = 0; i < Object.keys(players).length; i++) {
         Object.keys(players)[i].x = 1280/2-8;
         Object.keys(players)[i].y = 720/2-8;
-        console.log(Object.keys(players)[i]);
+        //console.log(Object.keys(players)[i]);
         broadcast(JSON.stringify(["move", Object.keys(players)[i], 1280/2-8, 720/2-8]));
     }
+    resetNPC = true;
 }
 
 let players = {};
@@ -198,6 +210,7 @@ let respawnEnabled = true;
 let adminPassword = "70f3e3f3f7fcc05733e76f70fc7c3755235939606d";
 let modPassword = "a0c3b43b4b9239b92c99ae2e4c10";
 let maxUsername = 20;
+let resetNPC = false;
 
 // red, green, blue, cyan, lime, yellow, orange, purple, pink, white, black, gray
 const colors = {
@@ -215,6 +228,7 @@ const colors = {
     gray: "#AAAAAA",
     brown: "#AA6969",
     maroon: "#AA0000",
+    indigo: "#0000AA",
 }
 
 http.on('request', app);
@@ -299,7 +313,7 @@ server.on('connection', c => {
                                             break;
 
                                         case "color":
-                                            c.send(JSON.stringify(["message", "/", `Colors player. Colors: red, green, blue, cyan, lime, yellow, orange, purple, pink, white, black, gray`]));
+                                            c.send(JSON.stringify(["message", "/", `Colors player. Colors: red, green, blue, cyan, lime, yellow, orange, purple, pink, white, black, gray, brown, maroon, indigo`]));
                                             break;
 
                                         case "respawn":
@@ -491,15 +505,24 @@ server.on('connection', c => {
     };
 });
 
-players["NPC"] = {x: Math.floor((1280 - 16) / 2), y: Math.floor((720 - 16) / 2), color: "yellow"};
+players["NPC"] = {x: Math.floor((1280 - 16) / 2), y: Math.floor((720 - 16) / 2), color: "gray"};
 let angle = 0;
+let drawer = false;
 setInterval(() => {
+    let drawRandom = Math.floor(Math.random() * 21);
+    if (drawRandom === 20) drawer = !drawer;
+
     let dir = Math.floor(Math.random() * 2);
     angle += (dir == 0) ? 0.1 : -0.1 % 360;
+
     let newX = Math.floor(7 * Math.sin(angle));
     let newY = Math.floor(7 * Math.cos(angle));
+
+    if (resetNPC) [players["NPC"].x, players["NPC"].y, resetNPC] = [1280/2-8,720/2-8, false];
+
     let touchedX = false;
     let touchedY = false;
+
     if (players["NPC"].x !== players["NPC"].prevX) {
         for (let i = 0; i < 9; i++) {
             for (let j = 0; j < 16; j++) {
@@ -527,9 +550,14 @@ setInterval(() => {
             }
         }
     }
+
     if (players["NPC"].x + newX > 0 && players["NPC"].x + newX < 1280 - 16 && !touchedX) players["NPC"].x += newX; else angle = +(angle - 180);
     if (players["NPC"].y + newY > 0 && players["NPC"].y + newY < 720 - 16 && !touchedY) players["NPC"].y += newY; else angle = +(angle - 180);
+
     broadcast(JSON.stringify(["move", "NPC", players["NPC"].x, players["NPC"].y]));
+
+    if (drawer) broadcast(JSON.stringify(["draw", players["NPC"].x, players["NPC"].y, colors[players["NPC"].color]]));
+
     if (Math.floor(Math.random() * 2022) == 42) broadcast(JSON.stringify(["message", "NPC", npcMsgs[Math.floor(Math.random() * npcMsgs.length)]]));
 }, 50);
 
