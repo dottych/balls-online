@@ -485,7 +485,7 @@ server.on('connection', c => {
                 break;
 
             case "draw":
-                if (players[id].x !== players[id].prevX || players[id].y !== players[id].prevY && players[id].moved + 50 < performance.now()) broadcast(JSON.stringify(["draw", players[id].x, players[id].y, colors[players[id].color]]));
+                if ((players[id].x !== players[id].prevX || players[id].y !== players[id].prevY) && players[id].moved + 50 < performance.now()) broadcast(JSON.stringify(["draw", players[id].x, players[id].y, colors[players[id].color]]));
                 break;
         }
         //c.send("shut the fung");
