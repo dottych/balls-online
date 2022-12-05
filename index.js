@@ -196,10 +196,10 @@ function newmap() {
     broadcast(JSON.stringify(["notification", "Changing map."]));
     broadcast(JSON.stringify(["map", map]));
     for (let i = 0; i < Object.keys(players).length; i++) {
-        Object.keys(players)[i].x = 1280/2-8;
-        Object.keys(players)[i].y = 720/2-8;
+        Object.keys(players)[i].x = Math.floor(Math.random() * 143)+561;
+        Object.keys(players)[i].y = Math.floor(Math.random() * 63)+383;
         //console.log(Object.keys(players)[i]);
-        broadcast(JSON.stringify(["move", Object.keys(players)[i], 1280/2-8, 720/2-8]));
+        broadcast(JSON.stringify(["move", Object.keys(players)[i], Object.keys(players)[i].x, Object.keys(players)[i].y]));
     }
     resetNPC = true;
 }
@@ -240,10 +240,10 @@ server.on('connection', c => {
     let id = nenc3(totalCount + c._socket.remoteAddress.substr(2) + Math.floor(Math.abs(Date.now() / 47 - performance.now() * 84)) % 42042 + clients.length).slice(0, 6);
     //let _x = Math.floor(Math.random() * 1264);
     //let _y = Math.floor(Math.random() * 704);
-    let [_x, _y] = [Math.floor((1280 - 16) / 2), Math.floor((720 - 16) / 2)];
+    let [_x, _y] = [Math.floor(Math.random() * 143)+561, Math.floor(Math.random() * 63)+383];
     let motd = motds[Math.floor(Math.random() * motds.length)];
     let randomColor = Object.keys(colors)[Math.floor(Math.random() * Object.keys(colors).length)];
-    players[id] = {x: _x, y: _y, prevX: _x, prevY: _y, color: randomColor, moved: performance.now(), mod: false, admin: false};
+    players[id] = {x: _x, y: _y, prevX: _x, prevY: _y, color: randomColor, moved: Math.round(performance.now()), mod: false, admin: false};
     log(`${id} connected`);
     c.send(JSON.stringify(["id", id]));
     c.send(JSON.stringify(["time", Math.floor(performance.now())]));
@@ -281,8 +281,8 @@ server.on('connection', c => {
         }
         switch (data[0]) {
             case "move":
-                if (players[id].moved + 50 < performance.now()) {
-                    [players[id].prevX, players[id].prevY, players[id].moved] = [players[id].x, players[id].prevY, performance.now()];
+                if (players[id].moved + 50 <= Math.round(performance.now())) {
+                    [players[id].prevX, players[id].prevY, /*players[id].moved*/] = [players[id].x, players[id].prevY, /*Math.round(performance.now())*/];
                     [players[id].x, players[id].y] = [clamp(Math.floor(data[1]), 0, 1280 - 16), clamp(Math.floor(data[2]), 0, 720 - 16)];
                     broadcastExceptClient(c, JSON.stringify(["move", id, players[id].x, players[id].y]));
                     // 0, 0 location lock: broadcast(JSON.stringify(["move", id, _x, _y]));
@@ -485,7 +485,9 @@ server.on('connection', c => {
                 break;
 
             case "draw":
-                if ((players[id].x !== players[id].prevX || players[id].y !== players[id].prevY) && players[id].moved + 50 < performance.now()) broadcast(JSON.stringify(["draw", players[id].x, players[id].y, colors[players[id].color]]));
+                //console.log(players[id].moved + 50, Math.round(performance.now()), players[id].moved + 50 <= Math.round(performance.now()))
+                //if ((players[id].x !== players[id].prevX || players[id].y !== players[id].prevY) && players[id].moved + 50 <= Math.round(performance.now())) broadcast(JSON.stringify(["draw", players[id].x, players[id].y, colors[players[id].color]]));
+                if (players[id].x !== players[id].prevX || players[id].y !== players[id].prevY) broadcast(JSON.stringify(["draw", players[id].x, players[id].y, colors[players[id].color]]));
                 break;
         }
         //c.send("shut the fung");
@@ -518,7 +520,7 @@ setInterval(() => {
     let newX = Math.floor(7 * Math.sin(angle));
     let newY = Math.floor(7 * Math.cos(angle));
 
-    if (resetNPC) [players["NPC"].x, players["NPC"].y, resetNPC] = [1280/2-8,720/2-8, false];
+    if (resetNPC) [players["NPC"].x, players["NPC"].y, resetNPC] = [Math.floor(Math.random() * 143)+561,Math.floor(Math.random() * 63)+383, false];
 
     let touchedX = false;
     let touchedY = false;

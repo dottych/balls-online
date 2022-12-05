@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Balls Online</title>
+    </head>
+    <body>
+        <h2>Balls Online</h2>
+        <p>Under construction</p>
+
+        <canvas id="canvas" width="1280" height="720"></canvas>
+
+        <script defer>
+            let canvas = document.getElementById("canvas");
+            let ctx = canvas.getContext("2d");
+            ctx.font = "bold 16px Calibri";
+
+            const ws = new WebSocket("wss://" + window.location.host);
+            const balls = {
+                keys: {
+                    left: 37,
+                    up: 38,
+                    right: 39,
+                    down: 40,
+                },
+
+                keyboard: {},
+
+                hex: [..."abcdef0123456789"],
+
+                now: performance.now(),
+
+                randomNumber: () => { return Math.floor(Math.sin(Math.cos(Math.PI) * performance.now() * Math.tan(performance.now())) * 100 + 100) },
+                randomHex: () => { return balls.hex[Math.floor(Math.random() * balls.hex.length)] },
+                randomHex2: () => { return balls.hex[balls.randomNumber() % balls.hex.length] },
+
+                drawText: (text, x, y) => {
+                    ctx.fillStyle = "black";
+                    ctx.fillText(text, x + 1, y + 1);
+                    ctx.fillStyle = "white";
+                    ctx.fillText(text, x, y);
+                },
+
+                players: {},
+                cid: "",
+                prevX: 0,
+                prevY: 0,
+
+                /*moveFigure: (figure) => {
+                    let dir = Math.floor(Math.random() * 2);
+                    balls.figures[figure].angle += (dir == 0) ? 0.1 : -0.1;
+                    let newX = 2 * Math.sin(balls.figures[figure].angle) / (performance.now() - balls.now);
+                    let newY = 2 * Math.cos(balls.figures[figure].angle) / (performance.now() - balls.now);
+                    if (balls.figures[figure].x + newX > 0 && balls.figures[figure].x + newX < 1280 - 16) balls.figures[figure].x += newX; else balls.figures[figure].angle = +(balls.figures[figure].angle - 180);
+                    if (balls.figures[figure].y + newY > 0 && balls.figures[figure].y + newY < 720 - 16) balls.figures[figure].y += newY; else balls.figures[figure].angle = +(balls.figures[figure].angle - 180);
+                },*/
+
+                addPlayer: (_id, _x, _y) => {
+                    balls.players[_id] = {x: _x, y: _y};
+                },
+
+                removePlayer: _id => {
+                    delete balls.players[_id];
+                },
+
+                draw: () => {
+                    balls.now = performance.now();
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = `gray`;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    ctx.textAlign = 'center';
+                    for (let i = 0; i < Object.keys(balls.players).length; i++) {
+                        //balls.moveFigure(i);
+                        let player = balls.players[Object.keys(balls.players)[i]];
+                        if (Object.keys(balls.players)[i] != balls.cid) ctx.fillStyle = '#AAAAAA'; else ctx.fillStyle = 'white';
+                        ctx.fillRect(player.x, player.y, 16, 16);
+                        balls.drawText(Object.keys(balls.players)[i], player.x + 8, player.y - 16);
+                    }
+
+                    [balls.prevX, balls.prevY] = [(balls.players[balls.cid] === undefined) ? 0 : balls.players[balls.cid].x, (balls.players[balls.cid] === undefined) ? 0 : balls.players[balls.cid].y];
+
+                    if (balls.keyboard[balls.keys.left]) balls.players[balls.cid].x -= 1;
+                    if (balls.keyboard[balls.keys.right]) balls.players[balls.cid].x += 1;
+                    if (balls.keyboard[balls.keys.up]) balls.players[balls.cid].y -= 1;
+                    if (balls.keyboard[balls.keys.down]) balls.players[balls.cid].y += 1;
+
+                    ctx.textAlign = 'left';
+                    balls.drawText(`FPS: ${Math.ceil(1000 / (performance.now() - balls.now))}`, 16, 16 * 1);
+                    balls.drawText(`ms run: ${Math.floor(balls.now)}`, 16, 16 * 2);
+                    balls.drawText(`client X: ${Math.floor((balls.players[balls.cid] === undefined) ? 0 : balls.players[balls.cid].x)}`, 16, 16 * 4);
+                    balls.drawText(`client Y: ${Math.floor((balls.players[balls.cid] === undefined) ? 0 : balls.players[balls.cid].y)}`, 16, 16 * 5);
+                    requestAnimationFrame(balls.draw);
+                },
+            }
+
+            ws.addEventListener('open', () => {
+                console.log("connected");
+                //ws.send("test");
+            });
+
+            ws.addEventListener('message', msg => {
+                console.log(JSON.parse(msg.data));
+                let data = JSON.parse(msg.data);
+                switch (data[0]) {
+                    case "id":
+                        balls.cid = data[1];
+                        break;
+                    case "spawn":
+                        balls.addPlayer(data[1], data[2], data[3]);
+                        break;
+                    case "despawn":
+                        balls.removePlayer(data[1]);
+                        break;
+                    case "move":
+                        if (data[1] != balls.cid) {
+                            balls.players[data[1]].x = data[2];
+                            balls.players[data[1]].y = data[3];
+                        }
+                        break;
+                }
+            });
+
+            window.addEventListener("keydown", event => { balls.keyboard[event.keyCode] = true; });
+            window.addEventListener("keyup", event => { balls.keyboard[event.keyCode] = false; });
+
+            balls.draw();
+
+            setInterval(() => {
+                if (ws.readyState != WebSocket.CLOSED && (balls.prevX != balls.players[balls.cid].x || balls.prevY != balls.players[balls.cid].y)) {
+                    ws.send(JSON.stringify(["move", balls.players[balls.cid].x, balls.players[balls.cid].y]));
+                }
+            }, 100);
+        </script>
+    </body>
+</html>
