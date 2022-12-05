@@ -196,10 +196,11 @@ function newmap() {
     broadcast(JSON.stringify(["notification", "Changing map."]));
     broadcast(JSON.stringify(["map", map]));
     for (let i = 0; i < Object.keys(players).length; i++) {
-        Object.keys(players)[i].x = Math.floor(Math.random() * 143)+561;
-        Object.keys(players)[i].y = Math.floor(Math.random() * 63)+383;
+        let [randomX,randomY] = [Math.floor(Math.random() * 143)+561, Math.floor(Math.random() * 63)+321];
+        Object.keys(players)[i].x = randomX;
+        Object.keys(players)[i].y = randomY;
         //console.log(Object.keys(players)[i]);
-        broadcast(JSON.stringify(["move", Object.keys(players)[i], Object.keys(players)[i].x, Object.keys(players)[i].y]));
+        broadcast(JSON.stringify(["move", Object.keys(players)[i], randomX, randomY]));
     }
     resetNPC = true;
 }
@@ -240,7 +241,7 @@ server.on('connection', c => {
     let id = nenc3(totalCount + c._socket.remoteAddress.substr(2) + Math.floor(Math.abs(Date.now() / 47 - performance.now() * 84)) % 42042 + clients.length).slice(0, 6);
     //let _x = Math.floor(Math.random() * 1264);
     //let _y = Math.floor(Math.random() * 704);
-    let [_x, _y] = [Math.floor(Math.random() * 143)+561, Math.floor(Math.random() * 63)+383];
+    let [_x, _y] = [Math.floor(Math.random() * 143)+561, Math.floor(Math.random() * 63)+321];
     let motd = motds[Math.floor(Math.random() * motds.length)];
     let randomColor = Object.keys(colors)[Math.floor(Math.random() * Object.keys(colors).length)];
     players[id] = {x: _x, y: _y, prevX: _x, prevY: _y, color: randomColor, moved: Math.round(performance.now()), mod: false, admin: false};
@@ -251,9 +252,10 @@ server.on('connection', c => {
     //c.send(JSON.stringify(["motd", motds[Math.floor(Math.random() * motds.length)]]));
     c.send(JSON.stringify(["map", map]));
 
-    c.send(JSON.stringify(["message", "Server", `Welcome to Balls Online! Version: ${version}`]));
-    c.send(JSON.stringify(["message", "Server", `There ${(Object.keys(players).length == 1) ? "is" : "are"} ${Object.keys(players).length} ${(Object.keys(players).length == 1) ? "player" : "players"} online.`]));
-    c.send(JSON.stringify(["message", "Server", `MOTD: ${motd}`]));
+    //c.send(JSON.stringify(["message", "Server", `Welcome to Balls Online! Version: ${version}`]));
+    //c.send(JSON.stringify(["message", "Server", `There ${(Object.keys(players).length == 1) ? "is" : "are"} ${Object.keys(players).length} ${(Object.keys(players).length == 1) ? "player" : "players"} online.`]));
+    c.send(JSON.stringify(["message", "Server", `Welcome to Balls Online! There ${(Object.keys(players).length == 1) ? "is" : "are"} ${Object.keys(players).length} ${(Object.keys(players).length == 1) ? "player" : "players"} online.`]));
+    c.send(JSON.stringify(["message", "MOTD", motd]));
     c.send(JSON.stringify(["notification", "Welcome to the server."]));
 
     // Spawn all players on the server for the client (except client player)
@@ -355,7 +357,8 @@ server.on('connection', c => {
                                 if (vars.length < 2) c.send(JSON.stringify(["message", "/", `Specify the name.`])); else {
                                     let newName = vars.slice(1).join(" ").slice(0, maxUsername).replace(regex, "");
                                     if (Object.keys(players).indexOf(newName) < 0) {
-                                        if (vars[1].indexOf("Server") === 0) c.send(JSON.stringify(["message", "/", `Hey, you can't just do that...`])); else {
+                                        if (vars[1].indexOf("Server") === 0 || 
+                                            vars[1].indexOf("MOTD") === 0) c.send(JSON.stringify(["message", "/", `Hey, you can't just do that...`])); else {
                                             let tempPlayer = players[id];
                                             delete players[id];
                                             let oldId = id;
@@ -520,7 +523,7 @@ setInterval(() => {
     let newX = Math.floor(7 * Math.sin(angle));
     let newY = Math.floor(7 * Math.cos(angle));
 
-    if (resetNPC) [players["NPC"].x, players["NPC"].y, resetNPC] = [Math.floor(Math.random() * 143)+561,Math.floor(Math.random() * 63)+383, false];
+    if (resetNPC) [players["NPC"].x, players["NPC"].y, resetNPC] = [Math.floor(Math.random() * 143)+561,Math.floor(Math.random() * 63)+321, false];
 
     let touchedX = false;
     let touchedY = false;
