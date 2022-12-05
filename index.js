@@ -282,7 +282,7 @@ server.on('connection', c => {
         switch (data[0]) {
             case "move":
                 if (players[id].moved + 50 < performance.now()) {
-                    [players[id].prevX, players[id].prevY] = [players[id].x, players[id].prevY];
+                    [players[id].prevX, players[id].prevY, players[id].moved] = [players[id].x, players[id].prevY, performance.now()];
                     [players[id].x, players[id].y] = [clamp(Math.floor(data[1]), 0, 1280 - 16), clamp(Math.floor(data[2]), 0, 720 - 16)];
                     broadcastExceptClient(c, JSON.stringify(["move", id, players[id].x, players[id].y]));
                     // 0, 0 location lock: broadcast(JSON.stringify(["move", id, _x, _y]));
@@ -485,7 +485,7 @@ server.on('connection', c => {
                 break;
 
             case "draw":
-                if (players[id].x !== players[id].prevX || players[id].y !== players[id].prevY) broadcast(JSON.stringify(["draw", players[id].x, players[id].y, colors[players[id].color]]));
+                if (players[id].x !== players[id].prevX || players[id].y !== players[id].prevY && players[id].moved + 50 < performance.now()) broadcast(JSON.stringify(["draw", players[id].x, players[id].y, colors[players[id].color]]));
                 break;
         }
         //c.send("shut the fung");
