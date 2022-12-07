@@ -39,12 +39,11 @@
         <meta property="og:url" content="./">
         <meta property="og:title" content="Balls Online | Weirdest multiplayer game">
         <meta property="og:description" content="Just hang out, and be a ball! What else could you wish for?">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="viewport" content="width=device-width, initial-scale=0.5, user-scalable=no">
         <link rel="icon" type="image/x-icon" href="./favicon.png">
     </head>
     <body>
         <form id="form" style="user-select: none;"><input id="message" maxlength="128" autocomplete="off" placeholder="Message"> <button>✔</button>
-            <a href="#" onclick="window.open('/help', 'Help', 'width=1280,height=720');">Help</a>
             <input type="checkbox" id="cb1">
             <input type="checkbox" id="cb2">
             <input type="checkbox" id="cb3">
@@ -59,6 +58,7 @@
             <input type="checkbox" id="cb5t" checked>
             <input type="checkbox" id="cb6t" checked>
             <input type="checkbox" id="cb7t" checked>
+            <button id="snap">Snap</button>
 
             <button id="bLeft" hidden style="user-select: none; width:64px;">&lt;</button>
             <button id="bDown" hidden style="user-select: none; width:64px;">ˇ</button>
@@ -71,6 +71,10 @@
 
         <audio id="ChatMessage"><source src="./ChatMessage.ogg" type="audio/ogg"></audio>
         <audio id="Notification"><source src="./Notification.ogg" type="audio/ogg"></audio>
+
+        <br>
+        <a href="#" onclick="window.open('/help', 'Help', 'width=1280,height=720');">Help</a>
+        <a href="#" onclick="window.open('/render', 'Render', 'width=450,height=300');">Render</a>
 
         <script defer src="./script.js"></script>
     </body>
