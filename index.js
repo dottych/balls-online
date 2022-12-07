@@ -1,9 +1,8 @@
 // ideas:
 /*
 whisper command
-wasd
 some small minigame / more ball interactivity
-(draw smoothing?)
+LIMIT MOVING AND DRAWING
 server selection
 hide gui checkbox
 teleport command
@@ -28,7 +27,7 @@ const { performance } = require('perf_hooks');
 console.log("running on port " + _port);
 
 
-const version = "0.4.1";
+const version = "0.4.3";
 
 let clients = [];
 let regex = /([^a-z0-9 _\-\+?!.:,$€Łß\/\\\(\)\{\}\[\]\<\>|á-ź*'"])+/gi; // work on this regex
@@ -171,6 +170,28 @@ const maps = [
         [1, 3, 2, 3, 1, 3, 0, 0, 0, 0, 3, 1, 3, 2, 3, 1,],
         [0, 0, 0, 0, 0, 3, 0, 2, 2, 0, 3, 0, 0, 0, 0, 0,],
     ],
+    [
+        [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,],
+        [0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0,],
+        [2, 1, 2, 3, 3, 3, 2, 1, 1, 2, 3, 3, 3, 2, 1, 2,],
+        [0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0,],
+        [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,],
+        [0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0, 0, 0,],
+        [2, 1, 2, 3, 3, 3, 2, 1, 1, 2, 3, 3, 3, 2, 1, 2,],
+        [0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0,],
+        [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0,],
+    ],
+    [
+        [0, 0, 0, 0, 0, 1, 0, 2, 2, 0, 1, 0, 0, 0, 0, 0,],
+        [0, 3, 3, 0, 0, 3, 3, 3, 3, 3, 3, 0, 0, 3, 0, 0,],
+        [0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 3, 0, 3, 3, 0,],
+        [0, 3, 3, 0, 2, 0, 0, 3, 3, 0, 0, 2, 0, 0, 0, 0,],
+        [0, 3, 0, 0, 2, 0, 3, 0, 0, 3, 0, 2, 0, 0, 3, 0,],
+        [0, 0, 0, 0, 3, 0, 1, 0, 0, 3, 0, 3, 0, 3, 3, 0,],
+        [0, 3, 3, 0, 3, 3, 3, 3, 3, 0, 0, 3, 0, 0, 0, 0,],
+        [0, 0, 3, 0, 3, 0, 0, 0, 0, 0, 0, 3, 0, 3, 3, 0,],
+        [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0,],
+    ],
 ]
 
 /*function generate() {
@@ -199,6 +220,8 @@ function newmap() {
         let [randomX,randomY] = [Math.floor(Math.random() * 143)+561, Math.floor(Math.random() * 63)+321];
         Object.keys(players)[i].x = randomX;
         Object.keys(players)[i].y = randomY;
+        Object.keys(players)[i].prevX = randomX;
+        Object.keys(players)[i].prevY = randomY;
         //console.log(Object.keys(players)[i]);
         broadcast(JSON.stringify(["move", Object.keys(players)[i], randomX, randomY]));
     }
@@ -213,10 +236,9 @@ let modPassword = "a0c3b43b4b9239b92c99ae2e4c10";
 let maxUsername = 20;
 let resetNPC = false;
 
-// red, green, blue, cyan, lime, yellow, orange, purple, pink, white, black, gray
 const colors = {
     red: "#FF6969",
-    green: "#69EE69",
+    green: "#69AA69",
     blue: "#3369FF",
     cyan: "#69FFFF",
     lime: "#69FF69",
@@ -230,6 +252,7 @@ const colors = {
     brown: "#AA6969",
     maroon: "#AA0000",
     indigo: "#0000AA",
+    forest: "#006900",
 }
 
 http.on('request', app);
@@ -283,11 +306,25 @@ server.on('connection', c => {
         }
         switch (data[0]) {
             case "move":
-                if (players[id].moved + 50 <= Math.round(performance.now())) {
-                    [players[id].prevX, players[id].prevY, /*players[id].moved*/] = [players[id].x, players[id].prevY, /*Math.round(performance.now())*/];
-                    [players[id].x, players[id].y] = [clamp(Math.floor(data[1]), 0, 1280 - 16), clamp(Math.floor(data[2]), 0, 720 - 16)];
-                    broadcastExceptClient(c, JSON.stringify(["move", id, players[id].x, players[id].y]));
-                    // 0, 0 location lock: broadcast(JSON.stringify(["move", id, _x, _y]));
+                let player = players[id];
+
+                if (player.moved + 50 <= Math.round(performance.now())) {
+                    let [
+                        nowX, 
+                        nowY
+                    ] = [
+                        Math.abs(players[id].prevX - data[1]) <= 17 ? clamp(Math.floor(data[1]), 0, 1280 - 16) : players[id].prevX,
+                        Math.abs(players[id].prevY - data[2]) <= 17 ? clamp(Math.floor(data[2]), 0, 720 - 16) : players[id].prevY,
+                    ]
+
+                    if (nowX !== players[id].prevX || nowY !== players[id].prevY) {
+                        /*[players[id].prevX, players[id].prevY, /*players[id].moved] = [players[id].x, players[id].prevY, /*Math.round(performance.now())];*/
+                        [players[id].prevX, players[id].prevY] = [players[id].x, players[id].y];
+                        [players[id].x, players[id].y] = [nowX, nowY];
+                        broadcastExceptClient(c, JSON.stringify(["move", id, players[id].x, players[id].y]));
+                        // 0, 0 location lock: broadcast(JSON.stringify(["move", id, _x, _y]));
+                    } else c.send(JSON.stringify(["move", id, players[id].x, players[id].y]));
+                    
                 }
                 break;
 
@@ -315,7 +352,8 @@ server.on('connection', c => {
                                             break;
 
                                         case "color":
-                                            c.send(JSON.stringify(["message", "/", `Colors player. Colors: red, green, blue, cyan, lime, yellow, orange, purple, pink, white, black, gray, brown, maroon, indigo`]));
+                                            c.send(JSON.stringify(["message", "/", `Colors player. Colors: red, green, blue, cyan, lime, yellow, orange, purple, pink...`]));
+                                            c.send(JSON.stringify(["message", "/", `...white, black, gray, brown, maroon, indigo, forest`]));
                                             break;
 
                                         case "respawn":
@@ -355,10 +393,11 @@ server.on('connection', c => {
 
                             case "name":
                                 if (vars.length < 2) c.send(JSON.stringify(["message", "/", `Specify the name.`])); else {
-                                    let newName = vars.slice(1).join(" ").slice(0, maxUsername).replace(regex, "");
+                                    let newName = vars.slice(1).join(" ").slice(0, maxUsername).replace(regex, "").trim();
                                     if (Object.keys(players).indexOf(newName) < 0) {
-                                        if (vars[1].indexOf("Server") === 0 || 
-                                            vars[1].indexOf("MOTD") === 0) c.send(JSON.stringify(["message", "/", `Hey, you can't just do that...`])); else {
+                                        if (newName.indexOf("Server") === 0 || 
+                                            newName.indexOf("MOTD") === 0 ||
+                                            newName === "") c.send(JSON.stringify(["message", "/", `Hey, you can't just do that...`])); else {
                                             let tempPlayer = players[id];
                                             delete players[id];
                                             let oldId = id;
@@ -392,6 +431,8 @@ server.on('connection', c => {
                                 if (respawnEnabled) {
                                     players[id].x = _x;
                                     players[id].y = _y;
+                                    players[id].prevX = _x;
+                                    players[id].prevY = _y;
                                     broadcast(JSON.stringify(["move", id, players[id].x, players[id].y]));
                                     c.send(JSON.stringify(["message", "/", `Teleported you to spawn.`]));
                                 } else c.send(JSON.stringify(["message", "/", `This command is disabled for now.`]));

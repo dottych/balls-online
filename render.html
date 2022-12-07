@@ -1,0 +1,77 @@
+<!-- BALLS ONLINE
+    What are you doing here?
+    Don't you have better things to do?
+    Well, I can't stop you.
+-->
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Balls Online</title>
+        <style>
+            body {
+                text-align: center;
+                margin-left: auto;
+                margin-right: auto;
+                background-color: #808080;
+                color: white;
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                overflow-x: hidden;
+                overflow-y: hidden;
+            }
+
+            canvas {
+                border-style: solid;
+                border-radius: 1px;
+                border-color: #AAAAAA;
+            }
+
+            p {
+                display: inline;
+            }
+
+            input, select {
+                outline: none;
+            }
+        </style>
+        <meta name="title" content="Balls Online | Weirdest multiplayer game">
+        <meta name="description" content="Just hang out, and be a ball! What else could you wish for?">
+        <meta property="og:type" content="website">
+        <meta property="og:url" content="./">
+        <meta property="og:title" content="Balls Online | Weirdest multiplayer game">
+        <meta property="og:description" content="Just hang out, and be a ball! What else could you wish for?">
+        <meta name="viewport" content="width=device-width, initial-scale=0.5, user-scalable=no">
+        <link rel="icon" type="image/x-icon" href="./favicon.png">
+    </head>
+    <body>
+        <canvas id="canvas" width="400" height="150"></canvas><br>
+
+        <input type="text" id="nick" value="Nickname">
+        <input type="text" id="desc" value="Description">
+        <br>
+
+        <select id="colors">
+            <option value="red" selected>Red</option>
+            <option value="green">Green</option>
+            <option value="blue">Blue</option>
+            <option value="cyan">Cyan</option>
+            <option value="lime">Lime</option>
+            <option value="yellow">Yellow</option>
+            <option value="orange">Orange</option>
+            <option value="purple">Purple</option>
+            <option value="pink">Pink</option>
+            <option value="white">White</option>
+            <option value="black">Black</option>
+            <option value="gray">Gray</option>
+            <option value="brown">Brown</option>
+            <option value="maroon">Maroon</option>
+            <option value="indigo">Indigo</option>
+            <option value="forest">Forest</option>
+        </select>
+        <input type="checkbox" id="outline">
+        <br>
+
+        <button id="snap">Snap</button>
+
+        <script defer src="./render.js"></script>
+    </body>
+</html>

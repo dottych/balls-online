@@ -10,6 +10,10 @@ app.get("/help", (req, res) => {
     res.sendFile(__dirname + "/help.html");
 });
 
+app.get("/render", (req, res) => {
+    res.sendFile(__dirname + "/render.html");
+});
+
 app.get("/oldest", (req, res) => {
     res.sendFile(__dirname + "/oldest.html");
 });
