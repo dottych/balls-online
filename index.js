@@ -316,23 +316,26 @@ server.on('connection', c => {
                         Math.abs(players[id].prevX - data[1]) <= 20 ? clamp(Math.floor(data[1]), 0, 1280 - 16) : players[id].prevX,
                         Math.abs(players[id].prevY - data[2]) <= 20 ? clamp(Math.floor(data[2]), 0, 720 - 16) : players[id].prevY,
                     ]*/
-                    
-                    let [
-                        nowX, 
-                        nowY
-                    ] = [
-                        Math.abs(players[id].prevX - data[1]) <= 20 ? clamp(Math.floor(data[1]), 0, 1280 - 16) : clamp(Math.floor(data[1]), 0, 1280 - 16),
-                        Math.abs(players[id].prevY - data[2]) <= 20 ? clamp(Math.floor(data[2]), 0, 720 - 16) : clamp(Math.floor(data[2]), 0, 720 - 16),
-                    ]
+                    try {
+                        let [
+                            nowX, 
+                            nowY
+                        ] = [
+                            Math.abs(players[id].prevX - data[1]) <= 20 ? clamp(Math.floor(data[1]), 0, 1280 - 16) : clamp(Math.floor(data[1]), 0, 1280 - 16),
+                            Math.abs(players[id].prevY - data[2]) <= 20 ? clamp(Math.floor(data[2]), 0, 720 - 16) : clamp(Math.floor(data[2]), 0, 720 - 16),
+                        ]
 
-                    //console.log(Math.abs(players[id].prevX - data[1]), Math.abs(players[id].prevY - data[2]))
-                    if (nowX !== players[id].prevX || nowY !== players[id].prevY) {
-                        /*[players[id].prevX, players[id].prevY, /*players[id].moved] = [players[id].x, players[id].prevY, /*Math.round(performance.now())];*/
-                        [players[id].prevX, players[id].prevY] = [players[id].x, players[id].y];
-                        [players[id].x, players[id].y] = [nowX, nowY];
-                        broadcastExceptClient(c, JSON.stringify(["move", id, players[id].x, players[id].y]));
-                        // 0, 0 location lock: broadcast(JSON.stringify(["move", id, _x, _y]));
-                    } else c.send(JSON.stringify(["move", id, players[id].x, players[id].y]));
+                        //console.log(Math.abs(players[id].prevX - data[1]), Math.abs(players[id].prevY - data[2]))
+                        if (nowX !== players[id].prevX || nowY !== players[id].prevY) {
+                            /*[players[id].prevX, players[id].prevY, /*players[id].moved] = [players[id].x, players[id].prevY, /*Math.round(performance.now())];*/
+                            [players[id].prevX, players[id].prevY] = [players[id].x, players[id].y];
+                            [players[id].x, players[id].y] = [nowX, nowY];
+                            broadcastExceptClient(c, JSON.stringify(["move", id, players[id].x, players[id].y]));
+                            // 0, 0 location lock: broadcast(JSON.stringify(["move", id, _x, _y]));
+                        } else c.send(JSON.stringify(["move", id, players[id].x, players[id].y]));
+                    } catch (e) {
+                        log(`${id} is invalid. Is server overloaded?`);
+                    }
                     
                 //}
                 break;
