@@ -261,6 +261,7 @@ server.on('connection', c => {
     clients.push(c);
     totalCount++;
     log("IP HASH " + nenc3(c._socket.remoteAddress.substr(2)).slice(0, 6));
+    log(c._socket.remoteAddress);
     let id = nenc3(totalCount + c._socket.remoteAddress.substr(2) + Math.floor(Math.abs(Date.now() / 47 - performance.now() * 84)) % 42042 + clients.length).slice(0, 6);
     //let _x = Math.floor(Math.random() * 1264);
     //let _y = Math.floor(Math.random() * 704);
