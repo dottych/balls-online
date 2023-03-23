@@ -23,7 +23,6 @@ const WSServer = ws.Server;
 const http = require('http').createServer();
 const server = new WSServer({ server: http });
 const app = require('./app');
-const moment = require('./moment');
 console.log("running on port " + _port);
 
 
