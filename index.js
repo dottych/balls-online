@@ -23,7 +23,7 @@ const WSServer = ws.Server;
 const http = require('http').createServer();
 const server = new WSServer({ server: http });
 const app = require('./app');
-const { performance } = require('perf_hooks');
+const moment = require('./moment');
 console.log("running on port " + _port);
 
 
@@ -65,6 +65,13 @@ const broadcastExceptClient = (client, data) => {
 const clamp = (int, min, max) => {
     return Math.min(Math.max(int, min), max);
 };
+
+const randomHex = (length = 1) => {
+    const hexes = [..."0123456789abcdef"];
+    let string = "";
+    for (let i = 0; i < length; i++) string += hexes[Math.floor(Math.random() * hexes.length)];
+    return string;
+}
 
 const motds = fs.readFileSync('./motds.txt').toString().split('\n');
 const npcMsgs = fs.readFileSync('./npcmsgs.txt').toString().split('\n');
@@ -255,13 +262,34 @@ const colors = {
     forest: "#006900",
 }
 
+let messages = [];
+
+const uInt16 = (int) => {
+    let bytes = [];
+    bytes.push(int >> 8);
+    bytes.push(int % 256);
+    return bytes;
+};
+
+const n6 = (int) => {
+    let bytes = [];
+    bytes.push(int >> 8);
+    bytes.push(int % 256);
+    return bytes;
+};
+
+const bytes = string => {
+    let bytes = [];
+    for (let i = 0; i < string.length; i++) bytes.push(string.charCodeAt(i));
+    return bytes;
+}
+
 http.on('request', app);
 
 server.on('connection', c => {
     clients.push(c);
     totalCount++;
     log("IP HASH " + nenc3(c._socket.remoteAddress.substr(2)).slice(0, 6));
-    log(c._socket.remoteAddress);
     let id = nenc3(totalCount + c._socket.remoteAddress.substr(2) + Math.floor(Math.abs(Date.now() / 47 - performance.now() * 84)) % 42042 + clients.length).slice(0, 6);
     //let _x = Math.floor(Math.random() * 1264);
     //let _y = Math.floor(Math.random() * 704);
@@ -296,6 +324,8 @@ server.on('connection', c => {
     // Spawn client for everyone
     broadcast(JSON.stringify(["spawn", id, players[id].x, players[id].y, colors[players[id].color]]));
 
+    let snapping = false;
+
     c.on('message', msg => {
         //log(`${id} - ${msg}`);
         let data;
@@ -317,6 +347,7 @@ server.on('connection', c => {
                         Math.abs(players[id].prevX - data[1]) <= 20 ? clamp(Math.floor(data[1]), 0, 1280 - 16) : players[id].prevX,
                         Math.abs(players[id].prevY - data[2]) <= 20 ? clamp(Math.floor(data[2]), 0, 720 - 16) : players[id].prevY,
                     ]*/
+                    
                     try {
                         let [
                             nowX, 
@@ -325,7 +356,7 @@ server.on('connection', c => {
                             Math.abs(players[id].prevX - data[1]) <= 20 ? clamp(Math.floor(data[1]), 0, 1280 - 16) : clamp(Math.floor(data[1]), 0, 1280 - 16),
                             Math.abs(players[id].prevY - data[2]) <= 20 ? clamp(Math.floor(data[2]), 0, 720 - 16) : clamp(Math.floor(data[2]), 0, 720 - 16),
                         ]
-
+    
                         //console.log(Math.abs(players[id].prevX - data[1]), Math.abs(players[id].prevY - data[2]))
                         if (nowX !== players[id].prevX || nowY !== players[id].prevY) {
                             /*[players[id].prevX, players[id].prevY, /*players[id].moved] = [players[id].x, players[id].prevY, /*Math.round(performance.now())];*/
@@ -337,6 +368,8 @@ server.on('connection', c => {
                     } catch (e) {
                         log(`${id} is invalid. Is server overloaded?`);
                     }
+
+                    
                     
                 //}
                 break;
@@ -406,20 +439,22 @@ server.on('connection', c => {
 
                             case "name":
                                 if (vars.length < 2) c.send(JSON.stringify(["message", "/", `Specify the name.`])); else {
-                                    let newName = vars.slice(1).join(" ").slice(0, maxUsername).replace(regex, "").trim();
+                                    let newName = vars.slice(1).join(" ").slice(0, maxUsername).replace(regex, "").trim().toString();
                                     if (Object.keys(players).indexOf(newName) < 0) {
                                         if (newName.indexOf("Server") === 0 || 
                                             newName.indexOf("MOTD") === 0 ||
-                                            newName === "") c.send(JSON.stringify(["message", "/", `Hey, you can't just do that...`])); else {
+                                            newName === "" ||
+                                            newName === "__proto__") c.send(JSON.stringify(["message", "/", `Hey, you can't just do that...`])); else {
                                             let tempPlayer = players[id];
-                                            delete players[id];
+                                            //delete players[id];
                                             let oldId = id;
-                                            id = newName;
-                                            players[id] = {x: tempPlayer.x, y: tempPlayer.y, prevX: tempPlayer.prevX, prevY: tempPlayer.prevY, color: tempPlayer.color, moved: tempPlayer.moved, mod: tempPlayer.mod, admin: tempPlayer.admin};
+                                            id = newName.toString();
+                                            players[id.toString()] = {x: tempPlayer.x, y: tempPlayer.y, prevX: tempPlayer.prevX, prevY: tempPlayer.prevY, color: tempPlayer.color, moved: tempPlayer.moved, mod: tempPlayer.mod, admin: tempPlayer.admin};
                                             broadcast(JSON.stringify(["rename", oldId, id]));
                                             broadcastExceptClient(c, JSON.stringify(["message", "Server", `${oldId} changed their name to ${id}.`]))
                                             c.send(JSON.stringify(["message", "/", `Changed your name to ${id}.`]));
                                             log(`${oldId} to ${id}`);
+                                            delete players[id];
                                         }
                                     } else c.send(JSON.stringify(["message", "/", `That name is already used.`]));
                                 }
@@ -506,6 +541,47 @@ server.on('connection', c => {
                                 }
                                 break;
 
+                            case "snap":
+                                // support drawing
+                                if (snapping) c.send(JSON.stringify(["message", "/", `A snap of yours is already in progress.`])); else {
+                                    snapping = true;
+                                    c.send(JSON.stringify(["message", "/", `Snapping, hold on...`]));
+
+                                    let pSnap = {
+                                        player: id,
+                                        version: version.replaceAll(".",""),
+                                        players: players,
+                                        messages: messages,
+                                        description: "I don't know."
+                                    };
+
+                                    let buffer = [];
+
+                                    buffer.push(...bytes("BM"), ...bytes(pSnap.version), ...bytes(pSnap.player), 0, ...bytes(pSnap.description), 0, ...bytes("PSTA"));
+
+                                    for (let _player in pSnap.players) {
+                                        buffer.push(...bytes(_player), 0, ...uInt16(pSnap.players[_player].x), ...uInt16(pSnap.players[_player].y));
+                                    }
+
+                                    buffer.push(...bytes("PEND"), ...bytes("MSTA"));
+                                    for (let _msg of messages) buffer.push(...bytes(_msg[0]), 0, ...bytes(_msg[1]), 0);
+                                    buffer.push(0, ...bytes("MEND"));
+                                    for (let i = 0; i < 16; i++) {
+                                        for (let j = 0; j < 9; j++) {
+                                            buffer.push(map[j][i]);
+                                        }
+                                    }
+
+                                    //console.log(Buffer.from(buffer));
+                                    let mID = randomHex(12);
+                                    fs.writeFileSync(`./memories/${mID}.bmr`, Buffer.from(buffer));
+                                    console.log("Written as " + mID);
+                                    snapping = false;
+                                    c.send(JSON.stringify(["message", "/", `Snapped as ${mID}.`]));
+                                    c.send(JSON.stringify(["snap", mID]));
+                                }
+                                break;
+
                             case "tp":
                                 if (players[id].admin) {
                                     
@@ -537,6 +613,8 @@ server.on('connection', c => {
                     }
                 } else {
                     broadcast(JSON.stringify(["message", id, data[1].slice(0, (players[id].mod || players[id].admin) ? 128 : 64).toString()]));
+                    messages.push([id, data[1].slice(0, (players[id].mod || players[id].admin) ? 128 : 64).toString()]);
+                    if (messages.length > 8) messages.shift();
                 }
                 
                 break;
@@ -562,6 +640,10 @@ server.on('connection', c => {
         //clients.splice(clients.indexOf(c), 1);
         log("error");
     };
+});
+
+server.on('error', e => {
+    log("An error has occured!");
 });
 
 players["NPC"] = {x: Math.floor((1280 - 16) / 2), y: Math.floor((720 - 16) / 2), color: "gray"};
