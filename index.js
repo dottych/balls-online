@@ -23,6 +23,7 @@ const WSServer = ws.Server;
 const http = require('http').createServer();
 const server = new WSServer({ server: http });
 const app = require('./app');
+const { performance } = require('perf_hooks');
 console.log("running on port " + _port);
 
 
