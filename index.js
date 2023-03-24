@@ -454,7 +454,7 @@ server.on('connection', c => {
                                             broadcastExceptClient(c, JSON.stringify(["message", "Server", `${oldId} changed their name to ${id}.`]))
                                             c.send(JSON.stringify(["message", "/", `Changed your name to ${id}.`]));
                                             log(`${oldId} to ${id}`);
-                                            delete players[id];
+                                            delete players[oldId];
                                         }
                                     } else c.send(JSON.stringify(["message", "/", `That name is already used.`]));
                                 }
